@@ -110,13 +110,13 @@ async function ensureContentScript(tabId) {
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tabId },
-        files: ['content.js']
+        files: ['js/content.js']
       });
 
       // Also inject the CSS
       await chrome.scripting.insertCSS({
         target: { tabId: tabId },
-        files: ['popup.css']
+        files: ['css/popup.css']
       });
 
       // Wait a bit for script to initialize
@@ -372,7 +372,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Handle queries from sidebar
     (async () => {
       try {
-        const response = await queryLLM(request.prompt);
+        let response;
+
+        // If we have history, use it. Otherwise fall back to simple prompt.
+        if (request.history && Array.isArray(request.history)) {
+          // Construct messages array from history
+          const messages = request.history.map(msg => ({
+            role: msg.role === 'assistant' ? 'assistant' : 'user', // Basic mapping, system messages might need handling
+            content: msg.content
+          })).filter(msg => msg.role === 'user' || msg.role === 'assistant');
+
+          // If page context is provided, add it as a system message at the start
+          if (request.pageContext) {
+            const contextMsg = `You are a helpful AI assistant. The user is browsing the following page:\nTitle: ${request.pageContext.title}\nURL: ${request.pageContext.url}\n\nContent:\n${request.pageContext.content.substring(0, 2000)}...`;
+            messages.unshift({ role: 'system', content: contextMsg });
+          } else {
+            // Basic system message if no context
+            messages.unshift({ role: 'system', content: "You are a helpful AI assistant." });
+          }
+
+          response = await queryLLM(null, messages);
+        } else {
+          // Fallback for requests without history (old way)
+          response = await queryLLM(request.prompt);
+        }
 
         // Save to history
         const settings = await chrome.storage.local.get(['provider', 'model']);
@@ -529,7 +552,7 @@ function formatHistoryAsText(history) {
   return text;
 }
 
-async function queryLLM(prompt) {
+async function queryLLM(prompt, messages = null) {
   // Get settings
   const settings = await chrome.storage.local.get(['provider', 'apiKey', 'model']);
 
@@ -541,15 +564,15 @@ async function queryLLM(prompt) {
 
   switch (provider) {
     case 'openai':
-      return await queryOpenAI(prompt, settings.apiKey, settings.model || 'gpt-4o-mini');
+      return await queryOpenAI(prompt, settings.apiKey, settings.model || 'gpt-4o-mini', messages);
     case 'anthropic':
-      return await queryAnthropic(prompt, settings.apiKey, settings.model || 'claude-3-5-haiku-20241022');
+      return await queryAnthropic(prompt, settings.apiKey, settings.model || 'claude-3-5-haiku-20241022', messages);
     case 'groq':
-      return await queryGroq(prompt, settings.apiKey, settings.model || 'llama-3.3-70b-versatile');
+      return await queryGroq(prompt, settings.apiKey, settings.model || 'llama-3.3-70b-versatile', messages);
     case 'google':
-      return await queryGoogle(prompt, settings.apiKey, settings.model || 'gemini-2.0-flash-exp');
+      return await queryGoogle(prompt, settings.apiKey, settings.model || 'gemini-2.0-flash-exp', messages);
     case 'openrouter':
-      return await queryOpenRouter(prompt, settings.apiKey, settings.model || 'google/gemini-2.0-flash-exp:free');
+      return await queryOpenRouter(prompt, settings.apiKey, settings.model || 'google/gemini-2.0-flash-exp:free', messages);
     default:
       throw new Error("Unknown provider");
   }
@@ -570,7 +593,9 @@ async function fetchWithTimeout(resource, options = {}) {
   return response;
 }
 
-async function queryOpenAI(prompt, apiKey, model) {
+async function queryOpenAI(prompt, apiKey, model, messages = null) {
+  const finalMessages = messages || [{ role: 'user', content: prompt }];
+
   const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -579,9 +604,7 @@ async function queryOpenAI(prompt, apiKey, model) {
     },
     body: JSON.stringify({
       model: model,
-      messages: [
-        { role: 'user', content: prompt }
-      ],
+      messages: finalMessages,
       max_tokens: 500,
       temperature: 0.7
     })
@@ -596,7 +619,32 @@ async function queryOpenAI(prompt, apiKey, model) {
   return data.choices[0].message.content;
 }
 
-async function queryAnthropic(prompt, apiKey, model) {
+async function queryAnthropic(prompt, apiKey, model, messages = null) {
+  let finalMessages;
+  let systemMessage = '';
+
+  if (messages) {
+    // Extract system message if present
+    const sysMsg = messages.find(m => m.role === 'system');
+    if (sysMsg) {
+      systemMessage = sysMsg.content;
+    }
+    // Filter out system messages for the messages array
+    finalMessages = messages.filter(m => m.role !== 'system');
+  } else {
+    finalMessages = [{ role: 'user', content: prompt }];
+  }
+
+  const body = {
+    model: model,
+    max_tokens: 500,
+    messages: finalMessages
+  };
+
+  if (systemMessage) {
+    body.system = systemMessage;
+  }
+
   const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -604,13 +652,7 @@ async function queryAnthropic(prompt, apiKey, model) {
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01'
     },
-    body: JSON.stringify({
-      model: model,
-      max_tokens: 500,
-      messages: [
-        { role: 'user', content: prompt }
-      ]
-    })
+    body: JSON.stringify(body)
   });
 
   if (!response.ok) {
@@ -622,7 +664,9 @@ async function queryAnthropic(prompt, apiKey, model) {
   return data.content[0].text;
 }
 
-async function queryGroq(prompt, apiKey, model) {
+async function queryGroq(prompt, apiKey, model, messages = null) {
+  const finalMessages = messages || [{ role: 'user', content: prompt }];
+
   const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -631,9 +675,7 @@ async function queryGroq(prompt, apiKey, model) {
     },
     body: JSON.stringify({
       model: model,
-      messages: [
-        { role: 'user', content: prompt }
-      ],
+      messages: finalMessages,
       max_tokens: 500,
       temperature: 0.7
     })
@@ -648,11 +690,29 @@ async function queryGroq(prompt, apiKey, model) {
   return data.choices[0].message.content;
 }
 
-async function queryGoogle(prompt, apiKey, model) {
+async function queryGoogle(prompt, apiKey, model, messages = null) {
   console.log('[Background] Querying Google with model:', model);
 
   if (!model || model === 'undefined') {
     throw new Error('No model selected. Please select a Gemini model in settings.');
+  }
+
+  let contents;
+  if (messages) {
+    // Map standard messages to Gemini format
+    contents = messages.map(msg => {
+      // Gemini uses 'user' and 'model' (for assistant) roles, and 'system' is handled differently usually but 'user' works for simple context
+      let role = msg.role;
+      if (role === 'assistant') role = 'model';
+      if (role === 'system') role = 'user'; // Fallback for system message as user message for simple compatibility
+
+      return {
+        role: role,
+        parts: [{ text: msg.content }]
+      };
+    });
+  } else {
+    contents = [{ parts: [{ text: prompt }] }];
   }
 
   const response = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
@@ -661,13 +721,7 @@ async function queryGoogle(prompt, apiKey, model) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ],
+      contents: contents,
       generationConfig: {
         maxOutputTokens: 500,
         temperature: 0.7
@@ -698,7 +752,9 @@ async function queryGoogle(prompt, apiKey, model) {
   return data.candidates[0].content.parts[0].text;
 }
 
-async function queryOpenRouter(prompt, apiKey, model) {
+async function queryOpenRouter(prompt, apiKey, model, messages = null) {
+  const finalMessages = messages || [{ role: 'user', content: prompt }];
+
   const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -709,9 +765,7 @@ async function queryOpenRouter(prompt, apiKey, model) {
     },
     body: JSON.stringify({
       model: model,
-      messages: [
-        { role: 'user', content: prompt }
-      ],
+      messages: finalMessages,
       max_tokens: 500,
       temperature: 0.7
     })

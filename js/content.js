@@ -662,7 +662,7 @@ function openSidebar() {
   // Create sidebar iframe
   sidebarIframe = document.createElement('iframe');
   sidebarIframe.id = 'ai-assistant-sidebar';
-  sidebarIframe.src = chrome.runtime.getURL('sidebar.html');
+  sidebarIframe.src = chrome.runtime.getURL('html/sidebar.html');
   sidebarIframe.style.cssText = `
     position: fixed;
     top: 0;
@@ -740,18 +740,13 @@ function extractPageContent() {
 function handleSidebarChat(data) {
   console.log('[Content] Sidebar chat:', data.message);
 
-  let prompt = data.message;
-
-  // If page-aware mode is on, prepend page context
-  if (data.pageAware && data.pageContext) {
-    prompt = `Based on this page:\nTitle: ${data.pageContext.title}\nURL: ${data.pageContext.url}\n\nContent preview:\n${data.pageContext.content.substring(0, 1000)}...\n\nQuestion: ${data.message}`;
-  }
-
   // Send to background script
   try {
     chrome.runtime.sendMessage({
       type: 'sidebarQuery',
-      prompt: prompt
+      prompt: data.message,
+      history: data.history,
+      pageContext: data.pageAware ? data.pageContext : null
     }, (response) => {
       if (chrome.runtime.lastError) {
         console.error('[Content] Error:', chrome.runtime.lastError);

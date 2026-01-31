@@ -49,11 +49,12 @@ clearHistoryBtn.addEventListener('click', () => {
 });
 
 sidebarInput.addEventListener('keydown', (e) => {
-    // Send on Ctrl+Enter
-    if (e.ctrlKey && e.key === 'Enter') {
+    // Send on Enter (without Shift)
+    if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
     }
+    // Newline on Shift+Enter (default behavior)
 
     // Show commands on /
     if (e.key === '/' && sidebarInput.value === '') {
@@ -153,6 +154,7 @@ function sendMessage() {
     window.parent.postMessage({
         type: 'sidebarChat',
         message: message,
+        history: chatHistory,
         pageAware: isPageAwareMode,
         pageContext: currentPageContext
     }, '*');

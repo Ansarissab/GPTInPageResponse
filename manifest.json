@@ -54,7 +54,7 @@
     "https://openrouter.ai/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "js/background.js"
   },
   "content_scripts": [
     {
@@ -63,21 +63,21 @@
       ],
       "js": [
         "lib/marked.min.js",
-        "content.js"
+        "js/content.js"
       ],
       "css": [
-        "popup.css",
-        "selection-toolbar.css",
-        "fab.css"
+        "css/popup.css",
+        "css/selection-toolbar.css",
+        "css/fab.css"
       ]
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "sidebar.html",
-        "sidebar.css",
-        "sidebar.js"
+        "html/sidebar.html",
+        "css/sidebar.css",
+        "js/sidebar.js"
       ],
       "matches": [
         "<all_urls>"
@@ -85,6 +85,6 @@
     }
   ],
   "action": {
-    "default_popup": "settings.html"
+    "default_popup": "html/settings.html"
   }
 }
