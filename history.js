@@ -12,12 +12,21 @@ document.getElementById('clear-btn').addEventListener('click', clearHistory);
 
 async function loadHistory() {
     try {
+        console.log('[History] Requesting history from background...');
         const response = await chrome.runtime.sendMessage({ type: 'getHistory' });
+        console.log('[History] Received response:', response);
 
-        if (response.success) {
+        if (response && response.success) {
             historyData = response.history;
+            if (!Array.isArray(historyData)) {
+                console.error('[History] Received history is not an array:', historyData);
+                historyData = [];
+            }
+            console.log('[History] Loaded entries:', historyData.length);
             renderHistory();
             updateStats();
+        } else {
+            console.error('[History] Failed response:', response);
         }
     } catch (error) {
         console.error('[History] Error loading history:', error);
@@ -50,37 +59,43 @@ function createHistoryItem(entry, index) {
     const div = document.createElement('div');
     div.className = 'history-item';
 
-    const date = new Date(entry.timestamp).toLocaleString();
-    const actionClass = `action-${entry.action}`;
-    const actionName = getActionName(entry.action);
+    const timestamp = entry.timestamp || new Date().toISOString();
+    const date = new Date(timestamp).toLocaleString();
+    const action = entry.action || 'unknown';
+    const actionClass = `action-${action}`;
+    const actionName = getActionName(action);
+    const model = entry.model || 'Unknown Model';
+    const provider = entry.provider || 'Unknown Provider';
+    const inputText = entry.inputText || '';
+    const responseText = entry.response || '';
 
     div.innerHTML = `
     <div class="history-header">
       <div class="history-meta">
         <span class="action-badge ${actionClass}">${actionName}${entry.isModification ? ' 🔄' : ''}</span>
         <span class="history-time">⏰ ${date}</span>
-        <span class="history-model">🤖 ${entry.model} (${entry.provider})</span>
-        ${entry.pageTitle ? `<a href="${entry.pageUrl}" class="page-link" target="_blank" title="${entry.pageUrl}">📄 ${entry.pageTitle}</a>` : ''}
+        <span class="history-model">🤖 ${model} (${provider})</span>
+        ${entry.pageTitle ? `<a href="${entry.pageUrl || '#'}" class="page-link" target="_blank" title="${entry.pageUrl || ''}">📄 ${entry.pageTitle}</a>` : ''}
       </div>
     </div>
     
     <div class="history-content">
-      ${!entry.isModification && entry.inputText ? `
+      ${!entry.isModification && inputText ? `
         <div class="content-section">
           <div class="content-label">Input Text</div>
           <div class="content-text collapsed" id="input-${index}">
-            ${escapeHtml(entry.inputText)}
+            ${escapeHtml(inputText)}
           </div>
-          ${entry.inputText.length > 200 ? `<button class="expand-btn" data-target="input-${index}">Show more ▼</button>` : ''}
+          ${inputText.length > 200 ? `<button class="expand-btn" data-target="input-${index}">Show more ▼</button>` : ''}
         </div>
       ` : ''}
       
       <div class="content-section">
         <div class="content-label">AI Response</div>
         <div class="content-text collapsed" id="response-${index}">
-          ${escapeHtml(entry.response)}
+          ${escapeHtml(responseText)}
         </div>
-        ${entry.response.length > 200 ? `<button class="expand-btn" data-target="response-${index}">Show more ▼</button>` : ''}
+        ${responseText.length > 200 ? `<button class="expand-btn" data-target="response-${index}">Show more ▼</button>` : ''}
       </div>
     </div>
   `;

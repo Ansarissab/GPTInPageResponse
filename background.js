@@ -243,9 +243,16 @@ async function handleAction(action, selectedText, tab) {
 }
 
 // Save to history
+// Save to history
 async function saveToHistory(historyEntry) {
   try {
-    const { responseHistory = [] } = await chrome.storage.local.get(['responseHistory']);
+    let { responseHistory } = await chrome.storage.local.get(['responseHistory']);
+
+    // Ensure responseHistory is an array
+    if (!Array.isArray(responseHistory)) {
+      console.warn('[Background] responseHistory was not an array, resetting to empty array');
+      responseHistory = [];
+    }
 
     // Add new entry at the beginning (most recent first)
     responseHistory.unshift(historyEntry);
@@ -254,7 +261,14 @@ async function saveToHistory(historyEntry) {
     const trimmedHistory = responseHistory.slice(0, 100);
 
     await chrome.storage.local.set({ responseHistory: trimmedHistory });
-    console.log('[Background] History saved:', historyEntry);
+
+    // Verify save
+    const check = await chrome.storage.local.get(['responseHistory']);
+    if (check.responseHistory && check.responseHistory.length > 0 && check.responseHistory[0].timestamp === historyEntry.timestamp) {
+      console.log('[Background] History saved successfully:', historyEntry);
+    } else {
+      console.error('[Background] History save verification failed');
+    }
   } catch (error) {
     console.error('[Background] Failed to save history:', error);
   }
@@ -264,7 +278,7 @@ async function saveToHistory(historyEntry) {
 let lastAction = null;
 let lastSelectedText = null;
 
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'contextMenuClick') {
     lastAction = request.action;
     lastSelectedText = request.selectedText;
@@ -273,43 +287,45 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   } else if (request.type === 'modifyResponse') {
     // Handle quick actions (shorter, longer)
     const tab = sender.tab;
-    try {
-      await sendMessageSafely(tab.id, {
-        type: "showPopup",
-        content: "Processing...",
-        loading: true
-      });
+    (async () => {
+      try {
+        await sendMessageSafely(tab.id, {
+          type: "showPopup",
+          content: "Processing...",
+          loading: true
+        });
 
-      const response = await queryLLM(request.prompt);
+        const response = await queryLLM(request.prompt);
 
-      await sendMessageSafely(tab.id, {
-        type: "showPopup",
-        content: response,
-        loading: false
-      });
+        await sendMessageSafely(tab.id, {
+          type: "showPopup",
+          content: response,
+          loading: false
+        });
 
-      // Save to history
-      const settings = await chrome.storage.local.get(['provider', 'model']);
-      await saveToHistory({
-        timestamp: new Date().toISOString(),
-        action: request.action,
-        inputText: request.prompt,
-        prompt: request.prompt,
-        response: response,
-        provider: settings.provider || 'unknown',
-        model: settings.model || 'unknown',
-        pageUrl: tab.url,
-        pageTitle: tab.title,
-        isModification: true
-      });
-    } catch (error) {
-      await sendMessageSafely(tab.id, {
-        type: "showPopup",
-        content: `Error: ${error.message}`,
-        loading: false,
-        error: true
-      });
-    }
+        // Save to history
+        const settings = await chrome.storage.local.get(['provider', 'model']);
+        await saveToHistory({
+          timestamp: new Date().toISOString(),
+          action: request.action,
+          inputText: request.prompt,
+          prompt: request.prompt,
+          response: response,
+          provider: settings.provider || 'unknown',
+          model: settings.model || 'unknown',
+          pageUrl: tab.url,
+          pageTitle: tab.title,
+          isModification: true
+        });
+      } catch (error) {
+        await sendMessageSafely(tab.id, {
+          type: "showPopup",
+          content: `Error: ${error.message}`,
+          loading: false,
+          error: true
+        });
+      }
+    })();
     sendResponse({ success: true });
   } else if (request.type === 'regenerate') {
     // Regenerate last response
@@ -319,43 +335,62 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     sendResponse({ success: true });
   } else if (request.type === 'sidebarQuery') {
     // Handle queries from sidebar
-    try {
-      const response = await queryLLM(request.prompt);
+    (async () => {
+      try {
+        const response = await queryLLM(request.prompt);
 
-      // Save to history
-      const settings = await chrome.storage.local.get(['provider', 'model']);
-      await saveToHistory({
-        timestamp: new Date().toISOString(),
-        action: 'sidebar_chat',
-        inputText: request.prompt,
-        prompt: request.prompt,
-        response: response,
-        provider: settings.provider || 'unknown',
-        model: settings.model || 'unknown',
-        pageUrl: sender.tab.url,
-        pageTitle: sender.tab.title
-      });
+        // Save to history
+        const settings = await chrome.storage.local.get(['provider', 'model']);
+        await saveToHistory({
+          timestamp: new Date().toISOString(),
+          action: 'sidebar_chat',
+          inputText: request.prompt,
+          prompt: request.prompt,
+          response: response,
+          provider: settings.provider || 'unknown',
+          model: settings.model || 'unknown',
+          pageUrl: sender.tab.url,
+          pageTitle: sender.tab.title
+        });
 
-      sendResponse({ success: true, content: response });
-    } catch (error) {
-      sendResponse({ success: false, error: error.message });
-    }
+        sendResponse({ success: true, content: response });
+      } catch (error) {
+        sendResponse({ success: false, error: error.message });
+      }
+    })();
     return true; // Keep channel open for async response
   } else if (request.type === 'getHistory') {
     // Get response history
-    const { responseHistory = [] } = await chrome.storage.local.get(['responseHistory']);
-    sendResponse({ success: true, history: responseHistory });
+    (async () => {
+      const { responseHistory = [] } = await chrome.storage.local.get(['responseHistory']);
+      console.log('[Background] Sending history to UI, count:', responseHistory.length);
+      sendResponse({ success: true, history: responseHistory });
+    })();
     return true;
   } else if (request.type === 'exportHistory') {
-    // Export history as text
-    const { responseHistory = [] } = await chrome.storage.local.get(['responseHistory']);
-    const textContent = formatHistoryAsText(responseHistory);
-    sendResponse({ success: true, content: textContent });
+    (async () => {
+      try {
+        // Export history as text
+        const { responseHistory = [] } = await chrome.storage.local.get(['responseHistory']);
+        const textContent = formatHistoryAsText(responseHistory);
+        sendResponse({ success: true, content: textContent });
+      } catch (error) {
+        console.error('[Background] Export error:', error);
+        sendResponse({ success: false, error: error.message });
+      }
+    })();
     return true;
   } else if (request.type === 'clearHistory') {
-    // Clear all history
-    await chrome.storage.local.set({ responseHistory: [] });
-    sendResponse({ success: true });
+    (async () => {
+      try {
+        // Clear all history
+        await chrome.storage.local.set({ responseHistory: [] });
+        sendResponse({ success: true });
+      } catch (error) {
+        console.error('[Background] Clear error:', error);
+        sendResponse({ success: false, error: error.message });
+      }
+    })();
     return true;
   }
   return true;
