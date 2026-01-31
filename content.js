@@ -30,6 +30,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     }
     sendResponse({ success: true });
+  } else if (request.type === 'toggleSidebar') {
+    toggleSidebar();
+    sendResponse({ success: true });
   }
 
   return true; // Keep channel open for async response
@@ -458,15 +461,6 @@ function copyToClipboard(text, auto = false) {
 
 let sidebarIframe = null;
 let isSidebarOpen = false;
-
-// Listen for sidebar toggle command
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'toggleSidebar') {
-    toggleSidebar();
-    sendResponse({ success: true });
-  }
-  return true;
-});
 
 // Listen for messages from sidebar iframe
 window.addEventListener('message', (event) => {
