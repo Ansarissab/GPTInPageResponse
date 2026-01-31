@@ -1,0 +1,146 @@
+/* Selection Toolbar Styles */
+.ai-selection-toolbar {
+    position: absolute;
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 2147483646;
+    opacity: 0;
+    transform: translateY(-5px) scale(0.95);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+}
+
+.ai-selection-toolbar.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+
+.ai-selection-toolbar::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #1a1a2e;
+    filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.ai-toolbar-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.ai-toolbar-btn:hover {
+    background: rgba(16, 163, 127, 0.25);
+    border-color: rgba(16, 163, 127, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 163, 127, 0.2);
+}
+
+.ai-toolbar-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(16, 163, 127, 0.2);
+}
+
+.ai-toolbar-btn .icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.ai-toolbar-btn.primary {
+    background: linear-gradient(135deg, #10a37f 0%, #0d8c6d 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.ai-toolbar-btn.primary:hover {
+    background: linear-gradient(135deg, #0d8c6d 0%, #0a7358 100%);
+    box-shadow: 0 4px 12px rgba(16, 163, 127, 0.4);
+}
+
+/* Smart context badge */
+.ai-toolbar-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
+    }
+}
+
+/* Quick action buttons in popup */
+.chatgpt-quick-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+}
+
+.chatgpt-quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(16, 163, 127, 0.08);
+    border: 1px solid rgba(16, 163, 127, 0.2);
+    border-radius: 6px;
+    color: #10a37f;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.chatgpt-quick-action-btn:hover {
+    background: rgba(16, 163, 127, 0.15);
+    border-color: rgba(16, 163, 127, 0.4);
+    transform: translateY(-1px);
+}
+
+.chatgpt-quick-action-btn .icon {
+    font-size: 12px;
+}

@@ -1,0 +1,83 @@
+{
+  "manifest_version": 3,
+  "name": "AI Quick Assistant",
+  "version": "2.0",
+  "description": "Summarize text and generate replies using your preferred AI (OpenAI, Anthropic, Groq, etc.)",
+  "commands": {
+    "summarize-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Summarize selected text"
+    },
+    "generate-reply": {
+      "suggested_key": {
+        "default": "Alt+Shift+R",
+        "mac": "Alt+Shift+R"
+      },
+      "description": "Generate reply to selected text"
+    },
+    "generate-comment": {
+      "suggested_key": {
+        "default": "Alt+Shift+C",
+        "mac": "Alt+Shift+C"
+      },
+      "description": "Generate comment for selected text"
+    },
+    "toggle-sidebar": {
+      "suggested_key": {
+        "default": "Alt+Shift+A",
+        "mac": "Alt+Shift+A"
+      },
+      "description": "Toggle AI sidebar"
+    }
+  },
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "storage",
+    "clipboardWrite",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "https://api.groq.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://openrouter.ai/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "popup.css",
+        "selection-toolbar.css",
+        "fab.css"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sidebar.html",
+        "sidebar.css",
+        "sidebar.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "settings.html"
+  }
+}

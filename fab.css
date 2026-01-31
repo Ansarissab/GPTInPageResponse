@@ -1,0 +1,106 @@
+/* Floating Action Button */
+.fab-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2147483645;
+}
+
+.fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10a37f 0%, #0d8c6d 100%);
+    border: none;
+    box-shadow: 0 4px 12px rgba(16, 163, 127, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: white;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(16, 163, 127, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
+
+.fab.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0);
+}
+
+/* FAB Menu */
+.fab-menu {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: all 0.2s ease;
+    pointer-events: none;
+    min-width: 200px;
+}
+
+.fab-menu.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+
+.fab-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-size: 14px;
+    color: #374151;
+    text-align: left;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.fab-menu-item:hover {
+    background: #f3f4f6;
+}
+
+.fab-menu-item .fab-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.fab-menu-item .fab-label {
+    flex: 1;
+}
+
+.fab-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Sidebar</title>
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+
+<body>
+    <div class="sidebar-container">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <div class="sidebar-title">
+                <span class="sidebar-icon">✨</span>
+                <span class="sidebar-name">AI Assistant</span>
+            </div>
+            <button class="sidebar-close" id="sidebar-close-btn" title="Close sidebar (Alt+Shift+A)">×</button>
+        </div>
+
+        <!-- Page Context Indicator -->
+        <div class="page-context" id="page-context">
+            <span class="context-icon">📄</span>
+            <span class="context-text" id="context-text">Ready</span>
+            <button class="context-toggle" id="context-toggle" title="Toggle page-aware mode">
+                <span id="context-status">ON</span>
+            </button>
+        </div>
+
+        <!-- Chat History -->
+        <div class="chat-history" id="chat-history">
+            <div class="welcome-message">
+                <h3>👋 Welcome!</h3>
+                <p>Select text on the page and use the toolbar, or type a question below.</p>
+                <p class="hint">💡 Page-aware mode is ON - I can see this page's content!</p>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="sidebar-input-container">
+            <textarea id="sidebar-input" class="sidebar-input"
+                placeholder="Ask about this page or type /help for commands..." rows="3"></textarea>
+            <div class="sidebar-actions">
+                <button class="sidebar-btn sidebar-btn-secondary" id="clear-history-btn" title="Clear history">
+                    🗑️
+                </button>
+                <button class="sidebar-btn sidebar-btn-primary" id="send-btn" title="Send (Ctrl+Enter)">
+                    Send →
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Commands -->
+        <div class="quick-commands" id="quick-commands" style="display: none;">
+            <div class="command-item" data-command="/summarize">📝 Summarize this page</div>
+            <div class="command-item" data-command="/help">❓ Show all commands</div>
+            <div class="command-item" data-command="/history">📜 View history</div>
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
+</body>
+
+</html>
