@@ -14,7 +14,7 @@ A feature-rich Chrome extension that integrates powerful AI models directly into
 - **Smart Selection Toolbar**: Quick actions (Summarize, Reply, Comment) appear instantly when you select text.
 - **Floating Action Button (FAB)**: Quick access to the sidebar and history from any corner of the page.
 - **Advanced History Tracking**: Every response is saved with metadata (model, provider, page URL) and is fully searchable.
-- **Voice Input**: Talk to your AI assistant using built-in speech recognition.
+- **Voice Input WIP**: Talk to your AI assistant using built-in speech recognition.
 - **Slash Commands**: Use `/summarize`, `/explain`, `/fix`, or `/translate` directly in the chat.
 - **Export Capabilities**: Download your chat history as Markdown files.
 - **Privacy-First**: Your API keys are stored locally in your browser. No middleman and no data tracking.
@@ -49,7 +49,7 @@ A feature-rich Chrome extension that integrates powerful AI models directly into
 - Type your questions or use **Slash Commands** for common tasks.
 - Enable/Disable **"Page Aware Mode"** to provide the AI with context from the current tab.
 
-### 🎙️ Voice Input
+### 🎙️ Voice Input WIP
 1. Open the sidebar.
 2. Click the **Microphone icon**.
 3. Speak your request and watch it transcribe in real-time.
