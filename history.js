@@ -6,8 +6,11 @@ let historyData = [];
 loadHistory();
 
 // Event listeners
-document.getElementById('export-btn').addEventListener('click', exportHistory);
 document.getElementById('refresh-btn').addEventListener('click', loadHistory);
+document.getElementById('export-txt-btn').addEventListener('click', exportHistoryText);
+document.getElementById('export-json-btn').addEventListener('click', exportHistoryJson);
+document.getElementById('import-btn').addEventListener('click', () => document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', handleFileImport);
 document.getElementById('clear-btn').addEventListener('click', clearHistory);
 
 async function loadHistory() {
@@ -92,8 +95,8 @@ function createHistoryItem(entry, index) {
       
       <div class="content-section">
         <div class="content-label">AI Response</div>
-        <div class="content-text collapsed" id="response-${index}">
-          ${escapeHtml(responseText)}
+        <div class="content-text collapsed markdown-body" id="response-${index}">
+          ${(typeof marked !== 'undefined') ? marked.parse(responseText) : (console.error('Marked library not found'), escapeHtml(responseText))}
         </div>
         ${responseText.length > 200 ? `<button class="expand-btn" data-target="response-${index}">Show more ▼</button>` : ''}
       </div>
@@ -148,35 +151,71 @@ function updateStats() {
     document.getElementById('today-count').textContent = todayCount;
 }
 
-async function exportHistory() {
+async function exportHistoryText() {
     try {
         const response = await chrome.runtime.sendMessage({ type: 'exportHistory' });
-
         if (response.success) {
-            // Create download
-            const blob = new Blob([response.content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ai-history-${new Date().toISOString().split('T')[0]}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-
-            // Show success message
-            const btn = document.getElementById('export-btn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span>✓</span><span>Exported!</span>';
-            btn.disabled = true;
-
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }, 2000);
+            downloadFile(response.content, `ai-assistant-history.txt`, 'text/plain');
         }
     } catch (error) {
-        console.error('[History] Export error:', error);
-        alert('Failed to export history');
+        console.error('[History] Export text error:', error);
     }
+}
+
+async function exportHistoryJson() {
+    try {
+        // We use exportHistoryJson to get the raw array
+        const response = await chrome.runtime.sendMessage({ type: 'exportHistoryJson' });
+        if (response.success) {
+            const jsonStr = JSON.stringify(response.history, null, 2);
+            downloadFile(jsonStr, `ai-assistant-history.json`, 'application/json');
+        }
+    } catch (error) {
+        console.error('[History] Export JSON error:', error);
+    }
+}
+
+function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type: type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+async function handleFileImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const json = JSON.parse(e.target.result);
+            if (!Array.isArray(json)) {
+                alert('Invalid JSON file. History must be an array.');
+                return;
+            }
+
+            const response = await chrome.runtime.sendMessage({
+                type: 'importHistory',
+                history: json
+            });
+
+            if (response.success) {
+                alert(`Successfully imported ${response.addedCount} items.`);
+                loadHistory(); // Reload UI
+            } else {
+                alert('Import failed: ' + response.error);
+            }
+        } catch (error) {
+            console.error('Import Error:', error);
+            alert('Error parsing JSON file.');
+        }
+        event.target.value = ''; // Reset input
+    };
+    reader.readAsText(file);
 }
 
 async function clearHistory() {

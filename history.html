@@ -287,17 +287,34 @@
         </header>
 
         <div class="actions">
-            <button class="btn btn-primary" id="export-btn">
-                <span>📥</span>
-                <span>Export as Text</span>
-            </button>
-            <button class="btn btn-secondary" id="refresh-btn">
-                <span>🔄</span>
-                <span>Refresh</span>
+            <div class="button-group">
+                <button class="btn btn-secondary" id="refresh-btn">
+                    <span>🔄</span>
+                    <span>Refresh</span>
+                </button>
+
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" id="export-json-btn" title="Backup as JSON">
+                    <span>📤</span>
+                    <span>Export JSON</span>
+                </button>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" id="import-btn" title="Restore from JSON">
+                    <span>📥</span>
+                    <span>Import JSON</span>
+                </button>
+                <input type="file" id="import-file" accept=".json" style="display: none;">
+            </div>
+
+            <button class="btn btn-primary" id="export-txt-btn">
+                <span>📄</span>
+                <span>Export Text</span>
             </button>
             <button class="btn btn-danger" id="clear-btn">
                 <span>🗑️</span>
-                <span>Clear All History</span>
+                <span>Clear All</span>
             </button>
         </div>
 
@@ -317,6 +334,7 @@
         </div>
     </div>
 
+    <script src="lib/marked.min.js"></script>
     <script src="history.js"></script>
 </body>
 

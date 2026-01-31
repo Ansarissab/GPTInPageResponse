@@ -17,6 +17,18 @@ chrome.runtime.onInstalled.addListener(() => {
     title: "Generate Comment with AI",
     contexts: ["selection"]
   });
+
+  chrome.contextMenus.create({
+    id: "factCheck",
+    title: "Fact Check with AI",
+    contexts: ["selection"]
+  });
+
+  chrome.contextMenus.create({
+    id: "askQuestion",
+    title: "Ask Question about this...",
+    contexts: ["selection"]
+  });
 });
 
 // Handle context menu clicks
@@ -65,7 +77,9 @@ chrome.commands.onCommand.addListener(async (command) => {
     const actionMap = {
       'summarize-selection': 'summarize',
       'generate-reply': 'generateReply',
-      'generate-comment': 'generateComment'
+      'generate-comment': 'generateComment',
+      'fact-check-selection': 'factCheck',
+      'ask-question-selection': 'askQuestion'
     };
 
     const action = actionMap[command];
@@ -81,7 +95,8 @@ chrome.commands.onCommand.addListener(async (command) => {
 const DEFAULT_PROMPTS = {
   summarize: "Please provide a concise summary of the following text. Focus on the main points and key takeaways:\n\n{selectedText}",
   generateReply: "Generate a professional and thoughtful reply to the following message. The reply should be:\n- Friendly and courteous\n- Brief (2-3 sentences)\n- Directly address the main points\n\nMessage:\n{selectedText}",
-  generateComment: "Generate an insightful comment in response to the following text. The comment should:\n- Add value to the discussion\n- Be constructive and respectful\n- Show understanding of the content\n\nContent:\n{selectedText}"
+  generateComment: "Generate an insightful comment in response to the following text. The comment should:\n- Add value to the discussion\n- Be constructive and respectful\n- Show understanding of the content\n\nContent:\n{selectedText}",
+  factCheck: "Current Date/Time: {currentDate}\n\nYou are a Fact-Checker. Your goal is to verify the accuracy of the following text. \n\nINSTRUCTIONS:\n1. Perform a simulated Google Search for the specific claims in the text.\n2. Verify the information against the most recent data available up to {currentDate}.\n3. Highlight specific inaccuracies or misleading statements.\n4. Provide the correct information with context.\n5. Cite sources if possible.\n\nText to Verify:\n{selectedText}"
 };
 
 // Helper function to ensure content script is loaded
@@ -161,10 +176,30 @@ async function handleAction(action, selectedText, tab) {
     case "generateComment":
       promptTemplate = settings.promptComment || DEFAULT_PROMPTS.generateComment;
       break;
+    case "factCheck":
+      promptTemplate = DEFAULT_PROMPTS.factCheck;
+      break;
+    case "askQuestion":
+      // For Ask Question, we need to get input from the user first
+      console.log('[Background] Requesting question input from user...');
+      try {
+        await sendMessageSafely(tab.id, {
+          type: "getQuestionInput",
+          selectedText: selectedText
+        });
+      } catch (error) {
+        console.error('[Background] Failed to request input:', error);
+      }
+      return; // Stop here, wait for callback
   }
 
   // Replace placeholder with actual selected text
-  const prompt = promptTemplate.replace(/{selectedText}/g, selectedText);
+  let prompt = promptTemplate.replace(/{selectedText}/g, selectedText);
+
+  // Inject current date/time if placeholder exists
+  const now = new Date().toLocaleString();
+  prompt = prompt.replace(/{currentDate}/g, now);
+
   console.log('[Background] Using prompt template:', promptTemplate.substring(0, 50) + '...');
 
   try {
@@ -392,6 +427,52 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     })();
     return true;
+  } else if (request.type === 'submitQuestion') {
+    // Handle question submitted by user
+    const { question, selectedText } = request;
+    const tab = sender.tab;
+
+    (async () => {
+      try {
+        await sendMessageSafely(tab.id, {
+          type: "showPopup",
+          content: "Thinking...",
+          loading: true
+        });
+
+        const prompt = `Answer the following question based on the context provided.\n\nContext:\n${selectedText}\n\nQuestion:\n${question}`;
+        const response = await queryLLM(prompt);
+
+        await sendMessageSafely(tab.id, {
+          type: "showPopup",
+          content: response,
+          loading: false
+        });
+
+        // Save to history
+        const settings = await chrome.storage.local.get(['provider', 'model']);
+        await saveToHistory({
+          timestamp: new Date().toISOString(),
+          action: 'askQuestion',
+          inputText: `${question}\n\nContext: ${selectedText.substring(0, 100)}...`,
+          prompt: prompt,
+          response: response,
+          provider: settings.provider || 'unknown',
+          model: settings.model || 'unknown',
+          pageUrl: tab.url,
+          pageTitle: tab.title
+        });
+      } catch (error) {
+        await sendMessageSafely(tab.id, {
+          type: "showPopup",
+          content: `Error: ${error.message}`,
+          loading: false,
+          error: true
+        });
+      }
+    })();
+    sendResponse({ success: true });
+    return true;
   }
   return true;
 });
@@ -412,10 +493,12 @@ function formatHistoryAsText(history) {
     const actionName = entry.action === 'summarize' ? 'Summarize' :
       entry.action === 'generateReply' ? 'Generate Reply' :
         entry.action === 'generateComment' ? 'Generate Comment' :
-          entry.action === 'shorter' ? 'Make Shorter' :
-            entry.action === 'longer' ? 'Make Longer' :
-              entry.action === 'regenerate' ? 'Regenerate' :
-                entry.action || 'Unknown';
+          entry.action === 'factCheck' ? 'Fact Check' :
+            entry.action === 'askQuestion' ? 'Asked Question' :
+              entry.action === 'shorter' ? 'Make Shorter' :
+                entry.action === 'longer' ? 'Make Longer' :
+                  entry.action === 'regenerate' ? 'Regenerate' :
+                    entry.action || 'Unknown';
 
     text += `-`.repeat(80) + '\n';
     text += `Entry #${index + 1}\n`;
@@ -472,8 +555,23 @@ async function queryLLM(prompt) {
   }
 }
 
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 60000 } = options;
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal
+  });
+
+  clearTimeout(id);
+  return response;
+}
+
 async function queryOpenAI(prompt, apiKey, model) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -499,7 +597,7 @@ async function queryOpenAI(prompt, apiKey, model) {
 }
 
 async function queryAnthropic(prompt, apiKey, model) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -525,7 +623,7 @@ async function queryAnthropic(prompt, apiKey, model) {
 }
 
 async function queryGroq(prompt, apiKey, model) {
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -557,7 +655,7 @@ async function queryGoogle(prompt, apiKey, model) {
     throw new Error('No model selected. Please select a Gemini model in settings.');
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+  const response = await fetchWithTimeout(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -601,7 +699,7 @@ async function queryGoogle(prompt, apiKey, model) {
 }
 
 async function queryOpenRouter(prompt, apiKey, model) {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
