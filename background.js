@@ -287,6 +287,21 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
         content: response,
         loading: false
       });
+
+      // Save to history
+      const settings = await chrome.storage.local.get(['provider', 'model']);
+      await saveToHistory({
+        timestamp: new Date().toISOString(),
+        action: request.action,
+        inputText: request.prompt,
+        prompt: request.prompt,
+        response: response,
+        provider: settings.provider || 'unknown',
+        model: settings.model || 'unknown',
+        pageUrl: tab.url,
+        pageTitle: tab.title,
+        isModification: true
+      });
     } catch (error) {
       await sendMessageSafely(tab.id, {
         type: "showPopup",
@@ -306,6 +321,21 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     // Handle queries from sidebar
     try {
       const response = await queryLLM(request.prompt);
+
+      // Save to history
+      const settings = await chrome.storage.local.get(['provider', 'model']);
+      await saveToHistory({
+        timestamp: new Date().toISOString(),
+        action: 'sidebar_chat',
+        inputText: request.prompt,
+        prompt: request.prompt,
+        response: response,
+        provider: settings.provider || 'unknown',
+        model: settings.model || 'unknown',
+        pageUrl: sender.tab.url,
+        pageTitle: sender.tab.title
+      });
+
       sendResponse({ success: true, content: response });
     } catch (error) {
       sendResponse({ success: false, error: error.message });

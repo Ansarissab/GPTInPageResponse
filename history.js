@@ -111,7 +111,8 @@ function getActionName(action) {
         'generateComment': '💬 Comment',
         'shorter': '📉 Shorter',
         'longer': '📈 Longer',
-        'regenerate': '🔄 Regenerate'
+        'regenerate': '🔄 Regenerate',
+        'sidebar_chat': '💭 Chat'
     };
     return names[action] || action;
 }
