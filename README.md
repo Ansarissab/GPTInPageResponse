@@ -1,259 +1,119 @@
-# AI Quick Assistant - Chrome Extension
+# AI Quick Assistant (v2.0) - Chrome Extension
 
-A powerful Chrome extension that lets you use AI to summarize text, generate replies, and create comments on any webpage. Works with OpenAI, Anthropic, Groq, and Google AI APIs.
+A feature-rich Chrome extension that integrates powerful AI models directly into your browsing experience. Summarize text, generate replies, chat with pages, and keep track of your AI interactions—all in one place.
 
-## ✨ Features
+## ✨ Key Features
 
-- **Multi-Provider Support**: OpenAI (GPT), Anthropic (Claude), Groq (Llama), Google (Gemini)
-- **Three Quick Actions**:
-  - 📝 Summarize text
-  - 💬 Generate reply
-  - 💭 Generate comment
-- **Auto-Copy**: Responses automatically copy to clipboard
-- **Fast & Reliable**: Direct API calls, no bot detection issues
-- **Privacy-Focused**: Your API key stays local in your browser
+- **Multi-Provider Support**: 
+  - **OpenAI** (GPT-4o, GPT-4o-mini)
+  - **Anthropic** (Claude 3.5 Sonnet/Haiku)
+  - **Google Gemini** (1.5 Flash/Pro, 2.0 Flash)
+  - **Groq** (Llama 3, Mixtral) — *Free & Ultra Fast!*
+  - **OpenRouter** — *Access any model!*
+- **Persistent AI Sidebar**: A side-panel for continuous chatting with page awareness.
+- **Smart Selection Toolbar**: Quick actions (Summarize, Reply, Comment) appear instantly when you select text.
+- **Floating Action Button (FAB)**: Quick access to the sidebar and history from any corner of the page.
+- **Advanced History Tracking**: Every response is saved with metadata (model, provider, page URL) and is fully searchable.
+- **Voice Input**: Talk to your AI assistant using built-in speech recognition.
+- **Slash Commands**: Use `/summarize`, `/explain`, `/fix`, or `/translate` directly in the chat.
+- **Export Capabilities**: Download your chat history as Markdown files.
+- **Privacy-First**: Your API keys are stored locally in your browser. No middleman and no data tracking.
 
-## 🚀 Quick Setup (5 minutes)
+## 🚀 Quick Setup (3 minutes)
 
 ### 1. Install the Extension
+1. Download this repository as a ZIP and extract it.
+2. Open Chrome and navigate to `chrome://extensions/`.
+3. Enable **"Developer mode"** in the top-right corner.
+4. Click **"Load unpacked"** and select the extracted folder.
 
-1. Download all files to a folder called `ai-assistant`
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable "Developer mode" (toggle in top-right)
-4. Click "Load unpacked"
-5. Select the `ai-assistant` folder
+### 2. Configure Your API Key
+1. Click the extension icon in your toolbar (Settings popup will appear).
+2. Select your preferred **AI Provider**.
+3. Paste your **API Key**.
+4. Click **"Save Settings"**.
 
-### 2. Get an API Key
-
-Choose one provider (Groq recommended for free tier):
-
-**🔥 Groq (Recommended - FREE & Fast)**
-- Go to: https://console.groq.com/keys
-- Sign up (free)
-- Create an API key
-- Model: `llama-3.3-70b-versatile`
-- Cost: **100% FREE** with generous limits
-
-**OpenAI (Paid - High Quality)**
-- Go to: https://platform.openai.com/api-keys
-- Sign up and add payment
-- Create an API key
-- Model: `gpt-4o-mini` (cheapest, $0.15 per 1M tokens)
-
-**Anthropic (Paid - Claude)**
-- Go to: https://console.anthropic.com/settings/keys
-- Sign up and add payment
-- Create an API key
-- Model: `claude-3-5-haiku-20241022` (fast & cheap)
-
-**Google (Free Tier Available)**
-- Go to: https://aistudio.google.com/app/apikey
-- Sign up (free tier available)
-- Create an API key
-- Model: `gemini-1.5-flash`
-
-### 3. Configure Extension
-
-1. Click the extension icon in Chrome toolbar
-2. Select your AI provider
-3. Choose a model
-4. Paste your API key
-5. Click "Test API Connection"
-6. If successful, click "Save Settings"
-
-Done! 🎉
+*Recommendation: Use **Groq** for a fast, free experience!*
 
 ## 📖 How to Use
 
-1. **Select any text** on any webpage
-2. **Right-click** on the selection
-3. **Choose an action**:
-   - "Summarize with AI"
-   - "Generate Reply with AI"
-   - "Generate Comment with AI"
-4. **Wait for popup** (appears near your selection)
-5. **Response auto-copies** to clipboard
-6. **Paste anywhere** you need it!
+### 🖱️ Selection Tools
+1. **Select text** on any webpage.
+2. A **floating toolbar** will appear near your cursor.
+3. Click an action (Summarize, Reply, etc.) to see the AI response in a draggable popup.
+4. Alternatively, **Right-click** the selection to see the same actions in the context menu.
 
-## 💰 Cost Comparison
+### 💬 AI Sidebar
+- Click the **Floating Action Button (FAB)** in the bottom-right corner and select the chat icon.
+- Press `Alt+Shift+A` to toggle it.
+- Type your questions or use **Slash Commands** for common tasks.
+- Enable/Disable **"Page Aware Mode"** to provide the AI with context from the current tab.
 
-### Free / Very Cheap Options:
+### 🎙️ Voice Input
+1. Open the sidebar.
+2. Click the **Microphone icon**.
+3. Speak your request and watch it transcribe in real-time.
 
-| Provider | Model | Cost | Speed | Quality |
-|----------|-------|------|-------|---------|
-| **Groq** | Llama 3.3 70B | FREE | ⚡⚡⚡ | ⭐⭐⭐⭐ |
-| Google | Gemini Flash | FREE (limits) | ⚡⚡ | ⭐⭐⭐⭐ |
-| OpenAI | GPT-4o Mini | ~$0.0001/use | ⚡⚡ | ⭐⭐⭐⭐⭐ |
+### 📂 History & Export
+- Access the full history by clicking the clock icon in the FAB or Sidebar.
+- Browse past interactions with specialized metadata.
+- Use the **Export icon** in the Sidebar to download your current chat session as a Markdown file.
 
-### Premium Options:
+## ⌨️ Keyboard Shortcuts
 
-| Provider | Model | Cost | Speed | Quality |
-|----------|-------|------|-------|---------|
-| OpenAI | GPT-4o | ~$0.003/use | ⚡⚡ | ⭐⭐⭐⭐⭐ |
-| Anthropic | Claude 3.5 Sonnet | ~$0.002/use | ⚡⚡ | ⭐⭐⭐⭐⭐ |
+| Shortcut | Action |
+|----------|--------|
+| `Alt+Shift+S` | Summarize selected text |
+| `Alt+Shift+R` | Generate reply to selected text |
+| `Alt+Shift+C` | Generate comment for selected text |
+| `Alt+Shift+A` | Toggle AI Sidebar |
 
-**Recommendation**: Start with **Groq** (it's free and fast!)
+## 🪄 Slash Commands (Sidebar Only)
 
-## 🔐 Privacy & Security
+- `/summarize` - Summarize the whole page or previous messages.
+- `/explain` - Ask for a detailed explanation of the current topic.
+- `/fix` - Paste code or text to fix errors.
+- `/translate` - Translate content to a specified language.
 
-- ✅ API keys stored locally in your browser only
-- ✅ No data sent to extension servers (there are none!)
-- ✅ Direct communication with your chosen AI provider
-- ✅ You control your data and costs
+## 📊 Cost & Performance
 
-## ⚙️ Available Models
+| Provider | Best Model | Cost | Speed | Recommendation |
+|----------|------------|------|-------|----------------|
+| **Groq** | Llama 3.3 70B | **FREE** | ⚡⚡⚡ | Best for general use |
+| **Google** | Gemini Flash | **FREE** (limits) | ⚡⚡ | Best for long context |
+| **OpenAI** | GPT-4o Mini | Ultra Cheap | ⚡⚡ | Best all-rounder |
+| **Anthropic**| Claude 3.5 Sonnet| Premium | ⚡⚡ | Best for coding/logic |
 
-### OpenAI
-- `gpt-4o` - Latest, most capable (expensive)
-- `gpt-4o-mini` - Great quality, very cheap ⭐
-- `gpt-4-turbo` - Previous flagship
-- `gpt-3.5-turbo` - Fastest, cheapest
+## 🛠️ Project Structure
 
-### Anthropic (Claude)
-- `claude-3-5-sonnet-20241022` - Best Claude
-- `claude-3-5-haiku-20241022` - Fast & cheap ⭐
-- `claude-3-opus-20240229` - Previous flagship
-
-### Groq (FREE!)
-- `llama-3.3-70b-versatile` - Best balance ⭐
-- `llama-3.1-70b-versatile` - Very capable
-- `mixtral-8x7b-32768` - Fast & efficient
-- `llama-3.1-8b-instant` - Ultra fast
-
-### Google
-- `gemini-2.0-flash-exp` - Latest (experimental)
-- `gemini-1.5-flash` - Fast & efficient ⭐
-- `gemini-1.5-pro` - Most capable
-
-## 🛠️ Customization
-
-### Change Prompts
-
-Edit `background.js` to customize prompts:
-
-```javascript
-switch(action) {
-  case "summarize":
-    prompt = `Your custom summarize prompt:\n\n${selectedText}`;
-    break;
-  // ...
-}
-```
-
-### Add Custom Actions
-
-1. Add context menu in `background.js`:
-```javascript
-chrome.contextMenus.create({
-  id: "myAction",
-  title: "My Custom Action",
-  contexts: ["selection"]
-});
-```
-
-2. Handle it in the switch:
-```javascript
-case "myAction":
-  prompt = `Your prompt: ${selectedText}`;
-  break;
-```
-
-## 🐛 Troubleshooting
-
-### "No API key configured"
-- Click extension icon
-- Enter your API key
-- Click Save Settings
-
-### "API Error: Invalid API key"
-- Check your API key is correct
-- Make sure you copied it completely
-- Try regenerating the key
-
-### "API Error: 429 / Rate limit"
-- You've hit your provider's rate limit
-- Wait a few minutes
-- Consider upgrading your plan
-
-### Popup doesn't appear
-- Check browser console (F12) for errors
-- Make sure extension is enabled
-- Try reloading the page
-
-### "Insufficient quota"
-- OpenAI: Add payment method and credits
-- Groq: Should never happen (generous free tier)
-- Google: Check your free tier limits
-
-## 📊 Usage Estimates
-
-For typical use (100 requests/day):
-
-| Provider | Model | Monthly Cost |
-|----------|-------|--------------|
-| Groq | Llama 3.3 70B | **$0.00** |
-| Google | Gemini Flash | **$0.00** (within free tier) |
-| OpenAI | GPT-4o Mini | ~$0.45 |
-| OpenAI | GPT-4o | ~$9.00 |
-| Anthropic | Claude Haiku | ~$6.00 |
-
-## 🔄 Updates
-
-The extension automatically uses the latest API endpoints. No updates needed unless you want new features.
-
-## 📝 Files Structure
-
-```
+```text
 ai-assistant/
-├── manifest.json          # Extension config
-├── background.js          # API handlers
-├── content.js            # Popup & clipboard
-├── popup.css             # Styling
-├── settings.html         # Settings UI
-├── settings.js           # Settings logic
-├── icons/                # Extension icons
-│   ├── icon16.png
-│   ├── icon48.png
-│   └── icon128.png
-└── README.md            # This file
+├── manifest.json       # Extension manifest (v3)
+├── js/                 # Javascript logic
+│   ├── background.js   # Service worker & API handlers
+│   ├── content.js      # Page injections (Toolbar, FAB, Popups)
+│   ├── sidebar.js      # Sidebar interactive logic
+│   ├── settings.js     # Settings management
+│   └── history.js      # History retrieval & display
+├── html/               # UI Layouts
+│   ├── settings.html   # Main settings popup
+│   ├── sidebar.html    # Sidebar interface
+│   └── history.html    # Full-page history viewer
+├── css/                # Styling
+│   ├── popup.css       # Draggable popup styles
+│   ├── sidebar.css     # Sidebar appearance
+│   └── fab.css         # Floating Action Button styles
+├── icons/              # Extension brand assets
+└── lib/                # External libraries (e.g., marked.js)
 ```
 
-## 🤝 Contributing
-
-Want to add support for another AI provider?
-
-1. Add API handler in `background.js`:
-```javascript
-async function queryYourProvider(prompt, apiKey, model) {
-  // Your API call here
-}
-```
-
-2. Add to switch in `queryLLM()`
-3. Add models to `settings.js`
-4. Done!
-
-## ⚠️ Important Notes
-
-- API keys are sensitive - don't share them
-- Monitor your usage to avoid unexpected costs
-- Free tiers have rate limits
-- Some providers require payment method on file
-
-## 📧 Support
-
-Issues? 
-1. Check troubleshooting section above
-2. Verify API key is correct
-3. Check browser console for errors
-4. Try a different AI provider
+## 🔐 Privacy & Safety
+- **Local Storage**: Your keys never leave your device.
+- **Direct Access**: The extension connects directly to the AI providers (OpenAI, Anthropic, etc.).
+- **No Analytics**: We don't track what you ask or what pages you visit.
 
 ## 📜 License
-
-MIT License - Feel free to modify and distribute
+MIT License - Feel free to fork, modify, and improve!
 
 ---
-
-**Enjoy AI-powered browsing! 🚀**
-
-Built with ❤️ for productivity
+**Built for high-performance productivity. Enjoy your AI-powered web! 🚀 By [Zahid Ansari](https://github.com/Ansarissab)**
