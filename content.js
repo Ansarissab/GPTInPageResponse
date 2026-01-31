@@ -1,4 +1,4 @@
-console.log('[Content] Content script loaded');
+console.log('[Content] Content script loaded (v2.1 - fixes applied)');
 
 // Selection toolbar state
 let selectionToolbar = null;
